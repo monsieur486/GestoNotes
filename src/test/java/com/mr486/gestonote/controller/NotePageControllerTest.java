@@ -159,7 +159,7 @@ class NotePageControllerTest {
         mockMvc.perform(post("/notes/update/5").with(csrf())
                         .param("categorieId", "3").param("titre", "T").param("couleur", "2").param("contenu", "C"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/notes?modeEdit=true"));
+                .andExpect(redirectedUrl("/notes?modeEdit=true&cat=3"));
 
         org.mockito.ArgumentCaptor<NoteDto> captor = org.mockito.ArgumentCaptor.forClass(NoteDto.class);
         verify(noteService).updateNote(org.mockito.ArgumentMatchers.eq(5), captor.capture());
@@ -185,11 +185,11 @@ class NotePageControllerTest {
 
     @Test
     @WithMockUser
-    void creeUneNotePuisRedirige() throws Exception {
+    void creeUneNotePuisRedirigeEnEditionSurLOnglet() throws Exception {
         mockMvc.perform(post("/notes/add/2").with(csrf())
                         .param("titre", "Courses").param("couleur", "2").param("contenu", "Pain"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/notes?modeEdit=true"));
+                .andExpect(redirectedUrl("/notes?modeEdit=true&cat=2"));
 
         verify(noteService).addNote(org.mockito.ArgumentMatchers.any());
     }
@@ -207,11 +207,11 @@ class NotePageControllerTest {
 
     @Test
     @WithMockUser
-    void metAJourUneNotePuisRedirige() throws Exception {
+    void metAJourUneNotePuisRedirigeEnEditionSurLOnglet() throws Exception {
         mockMvc.perform(post("/notes/update/5").with(csrf())
                         .param("categorieId", "2").param("titre", "T2").param("couleur", "3").param("contenu", "C2"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/notes?modeEdit=true"));
+                .andExpect(redirectedUrl("/notes?modeEdit=true&cat=2"));
 
         ArgumentCaptor<NoteDto> captor = ArgumentCaptor.forClass(NoteDto.class);
         verify(noteService).updateNote(org.mockito.ArgumentMatchers.eq(5), captor.capture());

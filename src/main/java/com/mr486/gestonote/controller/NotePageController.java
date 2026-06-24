@@ -118,7 +118,8 @@ public class NotePageController {
      * Crée une note dans une catégorie puis redirige vers le tableau en mode édition.
      *
      * <p><b>Exemple :</b> un POST sur {@code /notes/add/2} avec un titre et un contenu
-     * crée la note dans la catégorie 2 ; un formulaire invalide ré-affiche l'édition.</p>
+     * crée la note dans la catégorie 2 et redirige vers {@code /notes?modeEdit=true&cat=2} ;
+     * un formulaire invalide ré-affiche l'édition.</p>
      *
      * @param categorieId identifiant de la catégorie de rattachement
      * @param note        données saisies de la note
@@ -135,14 +136,16 @@ public class NotePageController {
         }
         note.setCategorieId(categorieId);
         noteService.addNote(note);
-        return "redirect:/notes?modeEdit=true";
+        return "redirect:/notes?modeEdit=true&cat=" + categorieId;
     }
 
     /**
      * Met à jour une note puis redirige vers le tableau en mode édition.
      *
      * <p><b>Exemple :</b> un POST sur {@code /notes/update/5} remplace le titre, la
-     * couleur et le contenu de la note 5 ; un formulaire invalide ré-affiche l'édition.</p>
+     * couleur et le contenu de la note 5 et redirige vers {@code /notes?modeEdit=true&cat=2}
+     * (catégorie de la note, après un éventuel transfert) ; un formulaire invalide
+     * ré-affiche l'édition.</p>
      *
      * @param id       identifiant de la note à modifier
      * @param note     données saisies de la note
@@ -159,7 +162,7 @@ public class NotePageController {
             return "edition";
         }
         noteService.updateNote(id, note);
-        return "redirect:/notes?modeEdit=true";
+        return "redirect:/notes?modeEdit=true&cat=" + note.getCategorieId();
     }
 
     // Expose les catégories actives pour le transfert si au moins deux sont actives.
