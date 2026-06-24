@@ -25,6 +25,7 @@
 |---------|----------------|--------|
 | `pom.xml` | Ajout de `spring-boot-starter-validation` | Modifier |
 | `dto/NoteDto.java` | Contraintes `@NotBlank` titre/contenu | Modifier |
+| `model/CouleurNote.java` | Extension de 4 à 8 couleurs (codes 1-8) | Modifier |
 | `service/CategorieService.java` | `getAllCategories`, `toggleActive` ; retrait du code mort | Modifier |
 | `persistance/CategorieRepository.java` | Retrait de `findAllByEstModifiableTrueOrderById` (mort) | Modifier |
 | `controller/CategoriePageController.java` | GET liste + POST toggle/rename | Modifier |
@@ -36,6 +37,7 @@
 | `controller/CategoriePageControllerTest.java` | Tests web catégories | Créer |
 | `controller/NotePageControllerTest.java` | Tests web add/update (POST) | Modifier |
 | `dto/NoteDtoValidationTest.java` | Test de validation Bean | Créer |
+| `model/CouleurNoteTest.java` | Tests des 8 couleurs | Modifier |
 
 ---
 
@@ -498,7 +500,84 @@ git commit -m "feat(categories): page de gestion (activer/désactiver, renommer)
 
 ---
 
-### Task 4: Édition/création de note — contrôleur, formulaire, sauvegarde
+### Task 4: Étendre `CouleurNote` à 8 couleurs
+
+**Files:**
+- Modify: `src/main/java/com/mr486/gestonote/model/CouleurNote.java`
+- Test: `src/test/java/com/mr486/gestonote/model/CouleurNoteTest.java`
+
+**Interfaces:**
+- Produces: `CouleurNote` avec 8 valeurs (codes 1-8) ; `CouleurNote.classeCss(Integer)` mappe 1→`btn btn-primary` … 8→`btn btn-dark`, défaut `btn btn-primary`.
+
+- [ ] **Step 1: Mettre à jour le test pour exiger 8 couleurs**
+
+Dans `CouleurNoteTest.java`, remplacer les méthodes `classeCssRetourneLaCouleurAttenduePourChaqueCode()` et `exposeLeCodeEtLaClasseCss()` par :
+
+```java
+    @Test
+    void classeCssRetourneLaCouleurAttenduePourChaqueCode() {
+        assertThat(CouleurNote.classeCss(1)).isEqualTo("btn btn-primary");
+        assertThat(CouleurNote.classeCss(2)).isEqualTo("btn btn-success");
+        assertThat(CouleurNote.classeCss(3)).isEqualTo("btn btn-warning");
+        assertThat(CouleurNote.classeCss(4)).isEqualTo("btn btn-danger");
+        assertThat(CouleurNote.classeCss(5)).isEqualTo("btn btn-secondary");
+        assertThat(CouleurNote.classeCss(6)).isEqualTo("btn btn-info");
+        assertThat(CouleurNote.classeCss(7)).isEqualTo("btn btn-light");
+        assertThat(CouleurNote.classeCss(8)).isEqualTo("btn btn-dark");
+    }
+
+    @Test
+    void exposeLeCodeEtLaClasseCss() {
+        assertThat(CouleurNote.SUCCES.getCode()).isEqualTo(2);
+        assertThat(CouleurNote.SUCCES.getClasseCss()).isEqualTo("btn btn-success");
+        assertThat(CouleurNote.values()).hasSize(8);
+        assertThat(CouleurNote.valueOf("FONCE")).isEqualTo(CouleurNote.FONCE);
+    }
+```
+
+- [ ] **Step 2: Lancer le test pour vérifier l'échec**
+
+Run: `./mvnw -o test -Dtest=CouleurNoteTest`
+Expected: échec — codes 5-8 et `hasSize(8)` ne passent pas (seules 4 valeurs existent).
+
+- [ ] **Step 3: Étendre l'énumération**
+
+Dans `CouleurNote.java`, remplacer la liste des valeurs par les 8 couleurs :
+
+```java
+    /** Couleur par défaut (code 1). */
+    PRIMAIRE(1, "btn btn-primary"),
+    /** Couleur de succès (code 2). */
+    SUCCES(2, "btn btn-success"),
+    /** Couleur d'avertissement (code 3). */
+    AVERTISSEMENT(3, "btn btn-warning"),
+    /** Couleur de danger (code 4). */
+    DANGER(4, "btn btn-danger"),
+    /** Couleur secondaire / grise (code 5). */
+    SECONDAIRE(5, "btn btn-secondary"),
+    /** Couleur d'information / cyan (code 6). */
+    INFO(6, "btn btn-info"),
+    /** Couleur claire (code 7). */
+    CLAIR(7, "btn btn-light"),
+    /** Couleur foncée (code 8). */
+    FONCE(8, "btn btn-dark");
+```
+
+- [ ] **Step 4: Lancer le test pour vérifier le succès**
+
+Run: `./mvnw -o test -Dtest=CouleurNoteTest`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/main/java/com/mr486/gestonote/model/CouleurNote.java src/test/java/com/mr486/gestonote/model/CouleurNoteTest.java
+git commit -m "feat(notes): étend la palette des notes de 4 à 8 couleurs Bootstrap"
+```
+
+---
+
+### Task 5: Édition/création de note — contrôleur, formulaire, sauvegarde
 
 **Files:**
 - Modify: `src/main/java/com/mr486/gestonote/controller/NotePageController.java`
@@ -748,7 +827,7 @@ Remplacer le bloc `container-fluid` de `edition.html` par :
 
         <div class="mb-3">
             <label class="form-label">Couleur</label>
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
                 <label class="btn btn-primary">
                     <input type="radio" th:field="*{couleur}" value="1" hidden/> Bleu
                 </label>
@@ -760,6 +839,18 @@ Remplacer le bloc `container-fluid` de `edition.html` par :
                 </label>
                 <label class="btn btn-danger">
                     <input type="radio" th:field="*{couleur}" value="4" hidden/> Rouge
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" th:field="*{couleur}" value="5" hidden/> Gris
+                </label>
+                <label class="btn btn-info">
+                    <input type="radio" th:field="*{couleur}" value="6" hidden/> Cyan
+                </label>
+                <label class="btn btn-light border">
+                    <input type="radio" th:field="*{couleur}" value="7" hidden/> Clair
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" th:field="*{couleur}" value="8" hidden/> Foncé
                 </label>
             </div>
         </div>
@@ -790,13 +881,13 @@ git commit -m "feat(notes): formulaire d'édition/création de note avec sauvega
 
 ---
 
-### Task 5: Câbler le tableau de notes (ajout + clic édition)
+### Task 6: Câbler le tableau de notes (ajout + clic édition)
 
 **Files:**
 - Modify: `src/main/resources/templates/notes.html`
 
 **Interfaces:**
-- Consumes: routes `GET /notes/add/{id}` et `GET /notes/update/{id}` (Task 4).
+- Consumes: routes `GET /notes/add/{id}` et `GET /notes/update/{id}` (Task 5).
 
 - [ ] **Step 1: Corriger le lien « Ajouter une note » et le clic en mode édition**
 
@@ -862,7 +953,7 @@ git commit -m "feat(notes): ouvre le formulaire d'édition au clic en mode édit
 
 ---
 
-### Task 6: Vérification finale (conventions)
+### Task 7: Vérification finale (conventions)
 
 **Files:** aucun (vérification et finalisation).
 
@@ -888,6 +979,6 @@ Via la skill `superpowers:finishing-a-development-branch` : vérifier les tests,
 
 ## Auto-revue (writing-plans)
 
-- **Couverture du spec :** §3 modèle inchangé (aucune tâche de migration — correct) ; §4 édition/création note → Task 1 (validation), Task 4 (contrôleur+form), Task 5 (notes.html) ; §5 gestion catégories → Task 2 (service), Task 3 (contrôleur+vue) ; §6 sécurité → inchangée (vérifiée Task 6) ; §7 tests → présents dans chaque tâche + Task 6 ; §8 impacts (validation, retrait `categorieService` de NotePageController, retrait code mort) → couverts.
+- **Couverture du spec :** §3 entités inchangées (aucune migration) + `CouleurNote` étendue à 8 → Task 4 ; §4 édition/création note → Task 1 (validation), Task 5 (contrôleur+form, 8 radios), Task 6 (notes.html) ; §5 gestion catégories → Task 2 (service), Task 3 (contrôleur+vue) ; §6 sécurité → inchangée (vérifiée Task 7) ; §7 tests → présents dans chaque tâche + Task 7 ; §8 impacts (validation, `CouleurNote` 8 couleurs, retrait `categorieService` de NotePageController, retrait code mort) → couverts.
 - **Placeholders :** aucun — chaque étape porte le code réel.
-- **Cohérence des types :** `getAllCategories()`, `toggleActive(Integer)`, `addNote(NoteDto)`, `updateNote(Integer, NoteDto)`, `NoteDto.fromModel(Note)`, attribut modèle `note` (NoteDto) et `formAction` — noms identiques entre tâches.
+- **Cohérence des types :** `getAllCategories()`, `toggleActive(Integer)`, `addNote(NoteDto)`, `updateNote(Integer, NoteDto)`, `NoteDto.fromModel(Note)`, `CouleurNote.classeCss(Integer)` (8 codes), attribut modèle `note` (NoteDto) et `formAction` — noms identiques entre tâches.

@@ -40,9 +40,23 @@ Aucune migration de base. Les entités restent inchangées :
 - `Note` : `id`, `categorieId`, `titre`, `couleur` (code Integer 1-4), `contenu`.
 - `Categorie` : `id`, `denomination`, `estActive`, `estModifiable`.
 
-Le code couleur (1-4) est déjà porté par l'énumération `CouleurNote`
-(`PRIMAIRE`/`SUCCES`/`AVERTISSEMENT`/`DANGER`), réutilisée pour le sélecteur de
-couleur et l'affichage.
+Le code couleur est porté par l'énumération `CouleurNote`, **étendue de 4 à 8
+couleurs** (codes 1 à 8), mappées sur les 8 classes de bouton contextuelles Bootstrap
+(aucun CSS custom) :
+
+| Code | Enum | Classe Bootstrap | Teinte |
+|------|------|------------------|--------|
+| 1 | `PRIMAIRE` | `btn btn-primary` | bleu |
+| 2 | `SUCCES` | `btn btn-success` | vert |
+| 3 | `AVERTISSEMENT` | `btn btn-warning` | jaune |
+| 4 | `DANGER` | `btn btn-danger` | rouge |
+| 5 | `SECONDAIRE` | `btn btn-secondary` | gris |
+| 6 | `INFO` | `btn btn-info` | cyan |
+| 7 | `CLAIR` | `btn btn-light` | clair |
+| 8 | `FONCE` | `btn btn-dark` | foncé |
+
+L'énumération est réutilisée pour le sélecteur de couleur et l'affichage. Un code
+inconnu ou nul retombe sur la couleur par défaut (`btn btn-primary`).
 
 ## 4. Édition et création de note
 
@@ -81,7 +95,7 @@ serveur depuis le chemin avant l'appel service.
 
 Formulaire avec :
 - **Titre** : `input` texte (requis).
-- **Couleur** : 4 boutons radio teintés selon `CouleurNote` (codes 1 à 4).
+- **Couleur** : 8 boutons radio teintés selon `CouleurNote` (codes 1 à 8).
 - **Contenu** : `textarea` (requis).
 - Boutons **Enregistrer** (submit) et **Annuler** (retour `/notes?modeEdit=true`).
 - Le `th:action` pointe vers `/notes/add/{categorieId}` ou `/notes/update/{id}`
@@ -91,7 +105,7 @@ Formulaire avec :
 ### 4.5 Validation
 
 - `@NotBlank` sur **titre** et **contenu** du `NoteDto`.
-- **couleur** : valeur attendue 1-4 (valeur par défaut 1).
+- **couleur** : valeur attendue 1-8 (valeur par défaut 1).
 - `categorieId` **ne porte pas** `@NotNull` : il est rempli côté serveur depuis le
   chemin, donc `@Valid` s'exécuterait avant qu'il soit posé (piège de validation des
   conventions maison). La garde anti-null reste dans le **service**.
@@ -159,6 +173,8 @@ les formulaires Thymeleaf injectent automatiquement le token `_csrf` dans les PO
 
 - `pom.xml` : ajout de **`spring-boot-starter-validation`** (absent du classpath) pour
   activer la validation Bean (`@NotBlank`, `@Valid`).
+- `model/CouleurNote.java` : **extension de 4 à 8 couleurs** (ajout de `SECONDAIRE`,
+  `INFO`, `CLAIR`, `FONCE` — codes 5 à 8) ; test `CouleurNoteTest` mis à jour.
 - `NotePageController` : les GET add/update construisent désormais un `NoteDto`
   (au lieu d'un `NoteHtml`) ; ajout des deux POST.
 - `NoteDto` : ajout des contraintes `@NotBlank` (titre, contenu).
