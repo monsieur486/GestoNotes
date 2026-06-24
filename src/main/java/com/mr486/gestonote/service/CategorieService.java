@@ -94,7 +94,7 @@ public class CategorieService {
      */
     public void toggleActive(Integer id) {
         Categorie categorie = getCategorieById(id);
-        if (!categorie.getEstModifiable() && categorie.getEstActive()) {
+        if (Boolean.FALSE.equals(categorie.getEstModifiable()) && Boolean.TRUE.equals(categorie.getEstActive())) {
             log.warn("tentative de désactivation de la catégorie non modifiable active {}", id);
             throw new IllegalArgumentException("Catégorie non modifiable active : " + id);
         }
