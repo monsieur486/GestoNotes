@@ -41,13 +41,35 @@ class CategorieServiceTest {
 
     @Test
     void toggleActiveBasculeLEtatActif() {
-        Categorie categorie = Categorie.builder().id(2).estActive(true).build();
+        Categorie categorie = Categorie.builder().id(2).estActive(true).estModifiable(true).build();
         when(categorieRepository.findById(2)).thenReturn(Optional.of(categorie));
 
         categorieService.toggleActive(2);
 
         verify(categorieRepository).save(categorie);
         assertThat(categorie.getEstActive()).isFalse();
+    }
+
+    @Test
+    void toggleActiveRefuseDesactiverCategorieNonModifiableActive() {
+        Categorie categorie = Categorie.builder().id(1).estActive(true).estModifiable(false).build();
+        when(categorieRepository.findById(1)).thenReturn(Optional.of(categorie));
+
+        assertThatThrownBy(() -> categorieService.toggleActive(1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("non modifiable");
+        verify(categorieRepository, never()).save(categorie);
+    }
+
+    @Test
+    void toggleActiveAutoriseActiverCategorieNonModifiableInactive() {
+        Categorie categorie = Categorie.builder().id(1).estActive(false).estModifiable(false).build();
+        when(categorieRepository.findById(1)).thenReturn(Optional.of(categorie));
+
+        categorieService.toggleActive(1);
+
+        verify(categorieRepository).save(categorie);
+        assertThat(categorie.getEstActive()).isTrue();
     }
 
     @Test

@@ -87,4 +87,15 @@ class CategoriePageControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/categories"));
     }
+
+    @Test
+    @WithMockUser
+    void basculeLEtatActifNonModifiableActiveRedirigeSansPlanter() throws Exception {
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("Catégorie non modifiable active : 1"))
+                .when(categorieService).toggleActive(1);
+
+        mockMvc.perform(post("/categories/1/toggle-active").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/categories"));
+    }
 }

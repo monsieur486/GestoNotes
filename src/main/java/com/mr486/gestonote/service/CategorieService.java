@@ -84,14 +84,20 @@ public class CategorieService {
     /**
      * Bascule l'état actif d'une catégorie (visible ou masquée dans le tableau de notes).
      *
-     * <p><b>Exemple :</b> sur une catégorie active, {@code toggleActive(2)} la désactive ;
-     * un second appel la réactive.</p>
+     * <p><b>Exemple :</b> sur une catégorie active et modifiable, {@code toggleActive(2)} la
+     * désactive ; un second appel la réactive. Une catégorie non modifiable et actuellement
+     * active ne peut pas être désactivée.</p>
      *
      * @param id identifiant de la catégorie
-     * @throws IllegalArgumentException si aucune catégorie ne correspond à l'identifiant
+     * @throws IllegalArgumentException si aucune catégorie ne correspond à l'identifiant,
+     *                                  ou si la catégorie est non modifiable et active
      */
     public void toggleActive(Integer id) {
         Categorie categorie = getCategorieById(id);
+        if (!categorie.getEstModifiable() && categorie.getEstActive()) {
+            log.warn("tentative de désactivation de la catégorie non modifiable active {}", id);
+            throw new IllegalArgumentException("Catégorie non modifiable active : " + id);
+        }
         categorie.setEstActive(!categorie.getEstActive());
         categorieRepository.save(categorie);
         log.info("état actif de la catégorie {} basculé à {}", id, categorie.getEstActive());

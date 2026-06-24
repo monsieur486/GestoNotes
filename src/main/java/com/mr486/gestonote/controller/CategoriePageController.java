@@ -41,15 +41,20 @@ public class CategoriePageController {
      * Bascule l'état actif d'une catégorie puis redirige vers la page de gestion.
      *
      * <p><b>Exemple :</b> un POST sur {@code /categories/2/toggle-active} active ou
-     * désactive la catégorie 2 et redirige vers {@code /categories}.</p>
+     * désactive la catégorie 2 et redirige vers {@code /categories} ; sur une catégorie
+     * non modifiable et active, l'opération est ignorée sans erreur.</p>
      *
      * @param id identifiant de la catégorie
      * @return la redirection vers la page des catégories
      */
     @PostMapping("/categories/{id}/toggle-active")
     public String toggleActive(@PathVariable Integer id) {
-        categorieService.toggleActive(id);
-        log.info("bascule de l'état actif de la catégorie {} depuis l'interface", id);
+        try {
+            categorieService.toggleActive(id);
+            log.info("bascule de l'état actif de la catégorie {} depuis l'interface", id);
+        } catch (IllegalArgumentException ex) {
+            log.warn("bascule refusée pour la catégorie {} : {}", id, ex.getMessage());
+        }
         return "redirect:/categories";
     }
 
