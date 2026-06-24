@@ -91,8 +91,18 @@ class NotePageControllerTest {
 
     @Test
     @WithMockUser
+    void supprimeSansCategorieRedirigeEnEdition() throws Exception {
+        mockMvc.perform(delete("/notes/delete/5").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/notes?modeEdit=true"));
+
+        verify(listeNotesService).deleteNote(5L);
+    }
+
+    @Test
+    @WithMockUser
     void exposeLOngletActifDemande() throws Exception {
-        when(listeNotesService.getTableau()).thenReturn(java.util.List.of());
+        when(listeNotesService.getTableau()).thenReturn(List.of());
 
         mockMvc.perform(get("/notes").param("modeEdit", "true").param("cat", "2"))
                 .andExpect(status().isOk())
