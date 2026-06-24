@@ -36,27 +36,37 @@
 
             <div class="mb-2">
                 <a th:if="${modeEdit}"
-                   th:href="@{/notes/{id}(id=${categorie.id})}"
+                   th:href="@{/notes/add/{id}(id=${categorie.id})}"
                    class="btn btn-success btn-sm">
                     ➕ Ajouter une note
                 </a>
             </div>
 
-            <span th:each="note : ${categorie.notes}" class="d-inline-flex align-items-center m-2">
-                <button onclick="navigator.clipboard.writeText(this.dataset.contenu)"
-                        th:class="${note.couleur} + ' rounded-3 p-3'"
-                        th:data-contenu="${note.contenu}"
-                        th:text="${note.titre}"
-                        type="button">
-                </button>
-                <form th:if="${modeEdit}"
-                      th:action="@{/notes/delete/{id}(id=${note.id})}"
-                      method="post"
-                      style="display:inline;">
-                    <input type="hidden" name="_method" value="delete"/>
-                    <button type="submit" class="btn btn-danger btn-sm ms-1">🗑️</button>
-                </form>
-            </span>
+            <div class="board">
+                <div th:each="note : ${categorie.notes}" class="postit-wrap">
+                    <a th:if="${modeEdit}"
+                       th:href="@{/notes/update/{id}(id=${note.id})}"
+                       class="postit" th:classappend="${note.couleur}">
+                        <span class="postit-title" th:text="${note.titre}"></span>
+                        <span class="postit-preview" th:text="${note.contenu}"></span>
+                    </a>
+                    <button th:unless="${modeEdit}"
+                            onclick="navigator.clipboard.writeText(this.dataset.contenu)"
+                            class="postit" th:classappend="${note.couleur}"
+                            th:data-contenu="${note.contenu}"
+                            type="button">
+                        <span class="postit-title" th:text="${note.titre}"></span>
+                        <span class="postit-preview" th:text="${note.contenu}"></span>
+                    </button>
+                    <form th:if="${modeEdit}"
+                          th:action="@{/notes/delete/{id}(id=${note.id})}"
+                          method="post"
+                          class="postit-delete">
+                        <input type="hidden" name="_method" value="delete"/>
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

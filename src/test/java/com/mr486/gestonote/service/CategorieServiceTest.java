@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,11 +32,22 @@ class CategorieServiceTest {
     private CategorieService categorieService;
 
     @Test
-    void getAllCategoriesModifiablesDelegueAuDepot() {
+    void getAllCategoriesDelegueAuDepotTrieParId() {
         List<Categorie> liste = List.of(new Categorie());
-        when(categorieRepository.findAllByEstModifiableTrueOrderById()).thenReturn(liste);
+        when(categorieRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))).thenReturn(liste);
 
-        assertThat(categorieService.getAllCategoriesModifiables()).isSameAs(liste);
+        assertThat(categorieService.getAllCategories()).isSameAs(liste);
+    }
+
+    @Test
+    void toggleActiveBasculeLEtatActif() {
+        Categorie categorie = Categorie.builder().id(2).estActive(true).build();
+        when(categorieRepository.findById(2)).thenReturn(Optional.of(categorie));
+
+        categorieService.toggleActive(2);
+
+        verify(categorieRepository).save(categorie);
+        assertThat(categorie.getEstActive()).isFalse();
     }
 
     @Test
@@ -84,16 +96,5 @@ class CategorieServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("non modifiable");
         verify(categorieRepository, never()).save(categorie);
-    }
-
-    @Test
-    void categorieTriggerBasculeLEtatModifiable() {
-        Categorie categorie = Categorie.builder().id(2).estModifiable(true).build();
-        when(categorieRepository.findById(2)).thenReturn(Optional.of(categorie));
-
-        categorieService.categorieTrigger(2);
-
-        verify(categorieRepository).save(categorie);
-        assertThat(categorie.getEstModifiable()).isFalse();
     }
 }
