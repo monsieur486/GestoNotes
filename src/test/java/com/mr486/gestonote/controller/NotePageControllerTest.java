@@ -22,6 +22,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -111,7 +112,9 @@ class NotePageControllerTest {
         mockMvc.perform(get("/notes/update/5"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("edition"))
-                .andExpect(model().attributeExists("note", "formAction", "categories"));
+                .andExpect(model().attributeExists("note", "formAction", "categories"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("<select")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Idées")));
     }
 
     @Test
