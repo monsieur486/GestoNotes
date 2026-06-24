@@ -5,12 +5,13 @@ import com.mr486.gestonote.model.Categorie;
 import com.mr486.gestonote.persistance.CategorieRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
- * Service métier de gestion des catégories : lecture, renommage et bascule de l'état modifiable.
+ * Service métier de gestion des catégories : lecture, renommage et bascule de l'état actif.
  */
 @Service
 @RequiredArgsConstructor
@@ -20,15 +21,15 @@ public class CategorieService {
     private final CategorieRepository categorieRepository;
 
     /**
-     * Liste les catégories modifiables, triées par identifiant croissant.
+     * Liste toutes les catégories (actives et inactives), triées par identifiant.
      *
-     * <p><b>Exemple :</b> {@code getAllCategoriesModifiables()} exclut les catégories
-     * système (non modifiables) comme « Principale ».</p>
+     * <p><b>Exemple :</b> {@code getAllCategories()} alimente la page de gestion en
+     * affichant aussi bien les catégories actives que désactivées.</p>
      *
-     * @return la liste des catégories modifiables (jamais {@code null})
+     * @return la liste de toutes les catégories, triées par identifiant
      */
-    public List<Categorie> getAllCategoriesModifiables() {
-        return categorieRepository.findAllByEstModifiableTrueOrderById();
+    public List<Categorie> getAllCategories() {
+        return categorieRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     /**
@@ -81,18 +82,18 @@ public class CategorieService {
     }
 
     /**
-     * Bascule l'état modifiable d'une catégorie (verrouille ou déverrouille son libellé).
+     * Bascule l'état actif d'une catégorie (visible ou masquée dans le tableau de notes).
      *
-     * <p><b>Exemple :</b> sur une catégorie modifiable, {@code categorieTrigger(2)} la
-     * rend non modifiable ; un second appel la rend de nouveau modifiable.</p>
+     * <p><b>Exemple :</b> sur une catégorie active, {@code toggleActive(2)} la désactive ;
+     * un second appel la réactive.</p>
      *
      * @param id identifiant de la catégorie
      * @throws IllegalArgumentException si aucune catégorie ne correspond à l'identifiant
      */
-    public void categorieTrigger(Integer id) {
+    public void toggleActive(Integer id) {
         Categorie categorie = getCategorieById(id);
-        categorie.setEstModifiable(!categorie.getEstModifiable());
+        categorie.setEstActive(!categorie.getEstActive());
         categorieRepository.save(categorie);
-        log.info("état modifiable de la catégorie {} basculé à {}", id, categorie.getEstModifiable());
+        log.info("état actif de la catégorie {} basculé à {}", id, categorie.getEstActive());
     }
 }
