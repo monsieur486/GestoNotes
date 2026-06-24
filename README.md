@@ -54,7 +54,10 @@ En production, l'application et la base tournent toutes deux dans Docker
 ## Configuration
 
 Toutes les valeurs sensibles ou variables d'environnement sont externalisées dans
-`.env` (ignoré par git). Le fichier `dist.env`, versionné, sert de modèle :
+`.env` (ignoré par git). Le fichier `dist.env`, versionné, sert de modèle : il ne
+contient **aucun secret réel**, ses mots de passe valent `a_changer_…` et **doivent**
+être remplacés par des secrets forts dans le `.env` local (jamais en production avec
+les valeurs du modèle).
 
 | Variable            | Rôle                                              |
 |---------------------|---------------------------------------------------|

@@ -2,7 +2,7 @@ package com.mr486.gestonote.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 
 /**
  * Contrôleur de la page de connexion.
@@ -19,7 +19,7 @@ public class LoginPageController {
      * @param model modèle de la vue
      * @return le nom de la vue à afficher
      */
-    @RequestMapping(value = "/login")
+    @GetMapping(value = "/login")
     public String pageView(Model model) {
         model.addAttribute("page_active", "login");
         return "login";
