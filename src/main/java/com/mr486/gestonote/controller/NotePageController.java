@@ -1,6 +1,8 @@
 package com.mr486.gestonote.controller;
 
 import com.mr486.gestonote.dto.NoteDto;
+import com.mr486.gestonote.model.Categorie;
+import com.mr486.gestonote.service.CategorieService;
 import com.mr486.gestonote.service.ListeNotesService;
 import com.mr486.gestonote.service.NoteService;
 import jakarta.validation.Valid;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 /**
  * Contrôleur du tableau de notes : affichage, suppression, et formulaires d'édition/création.
  */
@@ -26,6 +30,7 @@ public class NotePageController {
 
     private final ListeNotesService listeNotesService;
     private final NoteService noteService;
+    private final CategorieService categorieService;
 
     /**
      * Affiche le tableau des notes, éventuellement en mode édition.
@@ -95,6 +100,7 @@ public class NotePageController {
         model.addAttribute("page_active", "edition");
         model.addAttribute("note", new NoteDto().fromModel(noteService.getNoteById(id)));
         model.addAttribute("formAction", "/notes/update/" + id);
+        ajouteCategoriesSiTransfertPossible(model);
         return "edition";
     }
 
@@ -139,9 +145,18 @@ public class NotePageController {
                                    BindingResult resultat, Model model) {
         if (resultat.hasErrors()) {
             model.addAttribute("formAction", "/notes/update/" + id);
+            ajouteCategoriesSiTransfertPossible(model);
             return "edition";
         }
         noteService.updateNote(id, note);
         return "redirect:/notes?modeEdit=true";
+    }
+
+    // Expose les catégories actives pour le transfert si au moins deux sont actives.
+    private void ajouteCategoriesSiTransfertPossible(Model model) {
+        List<Categorie> actives = categorieService.getAllCategoriesActives();
+        if (actives.size() >= 2) {
+            model.addAttribute("categories", actives);
+        }
     }
 }

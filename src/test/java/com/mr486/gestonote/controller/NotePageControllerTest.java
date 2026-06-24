@@ -2,7 +2,6 @@ package com.mr486.gestonote.controller;
 
 import com.mr486.gestonote.configuration.SecurityConfiguration;
 import com.mr486.gestonote.dto.NoteDto;
-import com.mr486.gestonote.model.Note;
 import com.mr486.gestonote.service.ListeNotesService;
 import com.mr486.gestonote.service.NoteService;
 import org.junit.jupiter.api.Test;
@@ -44,6 +43,9 @@ class NotePageControllerTest {
 
     @MockitoBean
     private NoteService noteService;
+
+    @MockitoBean
+    private com.mr486.gestonote.service.CategorieService categorieService;
 
     @Test
     void accesNonAuthentifieRedirigeVersLaConnexion() throws Exception {
@@ -92,19 +94,69 @@ class NotePageControllerTest {
         mockMvc.perform(get("/notes/add/2"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("edition"))
-                .andExpect(model().attributeExists("note", "formAction"));
+                .andExpect(model().attributeExists("note", "formAction"))
+                .andExpect(model().attributeDoesNotExist("categories"));
     }
 
     @Test
     @WithMockUser
-    void afficheLeFormulaireDeModification() throws Exception {
+    void afficheLeFormulaireDeModificationAvecTransfertSiAuMoinsDeuxActives() throws Exception {
         when(noteService.getNoteById(5))
-                .thenReturn(Note.builder().id(5).categorieId(2).titre("T").couleur(2).contenu("C").build());
+                .thenReturn(com.mr486.gestonote.model.Note.builder()
+                        .id(5).categorieId(2).titre("T").couleur(2).contenu("C").build());
+        when(categorieService.getAllCategoriesActives()).thenReturn(java.util.List.of(
+                com.mr486.gestonote.model.Categorie.builder().id(1).denomination("Principale").build(),
+                com.mr486.gestonote.model.Categorie.builder().id(2).denomination("Idées").build()));
 
         mockMvc.perform(get("/notes/update/5"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("edition"))
-                .andExpect(model().attributeExists("note", "formAction"));
+                .andExpect(model().attributeExists("note", "formAction", "categories"));
+    }
+
+    @Test
+    @WithMockUser
+    void afficheLeFormulaireDeModificationSansTransfertSiUneSeuleActive() throws Exception {
+        when(noteService.getNoteById(5))
+                .thenReturn(com.mr486.gestonote.model.Note.builder()
+                        .id(5).categorieId(1).titre("T").couleur(2).contenu("C").build());
+        when(categorieService.getAllCategoriesActives()).thenReturn(java.util.List.of(
+                com.mr486.gestonote.model.Categorie.builder().id(1).denomination("Principale").build()));
+
+        mockMvc.perform(get("/notes/update/5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("edition"))
+                .andExpect(model().attributeDoesNotExist("categories"));
+    }
+
+    @Test
+    @WithMockUser
+    void transfereLaNoteVersUneAutreCategorie() throws Exception {
+        mockMvc.perform(post("/notes/update/5").with(csrf())
+                        .param("categorieId", "3").param("titre", "T").param("couleur", "2").param("contenu", "C"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/notes?modeEdit=true"));
+
+        org.mockito.ArgumentCaptor<NoteDto> captor = org.mockito.ArgumentCaptor.forClass(NoteDto.class);
+        verify(noteService).updateNote(org.mockito.ArgumentMatchers.eq(5), captor.capture());
+        assertThat(captor.getValue().getCategorieId()).isEqualTo(3);
+    }
+
+    @Test
+    @WithMockUser
+    void refuseLaModificationSiTitreVideEtRepeupleLesCategories() throws Exception {
+        when(categorieService.getAllCategoriesActives()).thenReturn(java.util.List.of(
+                com.mr486.gestonote.model.Categorie.builder().id(1).denomination("Principale").build(),
+                com.mr486.gestonote.model.Categorie.builder().id(2).denomination("Idées").build()));
+
+        mockMvc.perform(post("/notes/update/5").with(csrf())
+                        .param("categorieId", "2").param("titre", "").param("couleur", "2").param("contenu", "C"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("edition"))
+                .andExpect(model().attributeExists("categories"));
+
+        verify(noteService, org.mockito.Mockito.never())
+                .updateNote(org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.any());
     }
 
     @Test
