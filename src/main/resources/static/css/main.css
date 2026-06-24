@@ -2,6 +2,15 @@
     margin-top: 60px;
 }
 
+/* Onglets de catégories en écriture manuscrite, assortis aux post-it */
+#categoriesTabs .nav-link {
+    font-family: "Caveat", "Comic Sans MS", cursive;
+    font-size: 2.4rem;
+    font-weight: 700;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+}
+
 /* Tableau (board) sur lequel sont épinglés les post-it : vrai panneau de liège encadré */
 .board {
     display: flex;

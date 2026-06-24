@@ -15,7 +15,6 @@
             <button class="nav-link"
                     data-bs-toggle="tab"
                     role="tab"
-                    style="font-size: 2rem;"
                     th:classappend="${(catActif != null and categorie.id == catActif) or (catActif == null and iter.first)} ? 'active'"
                     th:data-bs-target="${'#pane-' + iter.index}"
                     th:id="${'tab-' + iter.index}"
