@@ -35,7 +35,8 @@
                 <span th:unless="${categorie.estActive}" class="badge bg-secondary">Inactive</span>
             </td>
             <td class="text-end">
-                <form th:action="@{/categories/{id}/toggle-active(id=${categorie.id})}" method="post"
+                <form th:if="${categorie.estModifiable}"
+                      th:action="@{/categories/{id}/toggle-active(id=${categorie.id})}" method="post"
                       style="display:inline;">
                     <button type="submit" class="btn btn-sm btn-outline-warning"
                             th:text="${categorie.estActive} ? 'Désactiver' : 'Activer'"></button>

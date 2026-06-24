@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,7 +53,9 @@ class CategoriePageControllerTest {
         mockMvc.perform(get("/categories"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("categories"))
-                .andExpect(model().attributeExists("categories"));
+                .andExpect(model().attributeExists("categories"))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("Désactiver"))));
     }
 
     @Test
@@ -84,6 +87,17 @@ class CategoriePageControllerTest {
                 .when(categorieService).updateCategorie(eq(1), any());
 
         mockMvc.perform(post("/categories/1/rename").with(csrf()).param("denomination", "X"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/categories"));
+    }
+
+    @Test
+    @WithMockUser
+    void basculeLEtatActifNonModifiableActiveRedirigeSansPlanter() throws Exception {
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("Catégorie non modifiable active : 1"))
+                .when(categorieService).toggleActive(1);
+
+        mockMvc.perform(post("/categories/1/toggle-active").with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/categories"));
     }
