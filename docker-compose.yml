@@ -1,0 +1,30 @@
+services:
+
+  gestonote-db:
+    image: postgres:16
+    container_name: gestonote-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - gestonote_db_data:/var/lib/postgresql/data
+
+  gestonote-webclient:
+    env_file:
+      - .env
+    build:
+      dockerfile: Dockerfile
+    profiles: [ "fullstack" ]
+    container_name: gestonote-webclient
+    depends_on:
+      - gestonote-db
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "${DOCKER_UI_PORT}:${DOCKER_UI_PORT}"
+
+volumes:
+  gestonote_db_data:

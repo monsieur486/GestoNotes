@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html lang="fr"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>GestoNotes</title>
+    <div th:replace="~{fragments/header :: header-css}"></div>
+</head>
+<body>
+<div th:replace="~{fragments/menu :: menu}"></div>
+<div class="container-fluid">
+    <!-- Onglets nav -->
+    <ul class="nav nav-tabs" id="categoriesTabs" role="tablist">
+        <li class="nav-item" role="presentation" th:each="categorie, iter : ${categories}">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    role="tab"
+                    th:classappend="${iter.first} ? 'active'"
+                    th:data-bs-target="${'#pane-' + iter.index}"
+                    th:id="${'tab-' + iter.index}"
+                    th:text="${categorie.denomination}"
+                    type="button">
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenu des onglets -->
+    <div class="tab-content mt-3" id="categoriesTabsContent">
+        <div class="tab-pane fade"
+             role="tabpanel"
+             th:aria-labelledby="${'tab-' + iter.index}"
+             th:classappend="${iter.first} ? 'show active'"
+             th:each="categorie, iter : ${categories}"
+             th:id="${'pane-' + iter.index}"
+             th:if="${categorie != null}">
+
+            <div class="mb-2">
+                <a th:if="${modeEdit}"
+                   th:href="@{/notes/{id}(id=${categorie.id})}"
+                   class="btn btn-success btn-sm">
+                    ➕ Ajouter une note
+                </a>
+            </div>
+
+            <span th:each="note : ${categorie.notes}" class="d-inline-flex align-items-center m-2">
+                <button onclick="navigator.clipboard.writeText(this.dataset.contenu)"
+                        th:class="${note.couleur} + ' rounded-3 p-3'"
+                        th:data-contenu="${note.contenu}"
+                        th:text="${note.titre}"
+                        type="button">
+                </button>
+                <form th:if="${modeEdit}"
+                      th:action="@{/notes/delete/{id}(id=${note.id})}"
+                      method="post"
+                      style="display:inline;">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit" class="btn btn-danger btn-sm ms-1">🗑️</button>
+                </form>
+            </span>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

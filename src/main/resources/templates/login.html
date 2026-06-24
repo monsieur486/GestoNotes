@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<html lang="fr"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Connexion</title>
+    <div th:replace="~{fragments/header :: header-css}"></div>
+</head>
+<body>
+<div th:replace="~{fragments/menu :: menu}"></div>
+<div class="container-fluid">
+    <h3>Connexion</h3>
+    <div th:if="${param.error}">
+        <div class="alert alert-danger">Identifiant invalides.</div>
+    </div>
+    <form method="post" th:action="@{/login}">
+        <div><label>👤
+            <input name="username" placeholder="Utilisateur" type="text"/>
+        </label></div>
+        <div><label>🔒
+            <input name="password" placeholder="Mot de passe" type="password"/>
+        </label></div>
+        <div style="padding: 10px;"></div>
+        <button class="btn btn-primary" type="submit">Se connecter</button>
+    </form>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
