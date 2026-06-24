@@ -18,7 +18,15 @@ public enum CouleurNote {
     /** Couleur d'avertissement (code 3). */
     AVERTISSEMENT(3, "btn btn-warning"),
     /** Couleur de danger (code 4). */
-    DANGER(4, "btn btn-danger");
+    DANGER(4, "btn btn-danger"),
+    /** Couleur secondaire / grise (code 5). */
+    SECONDAIRE(5, "btn btn-secondary"),
+    /** Couleur d'information / cyan (code 6). */
+    INFO(6, "btn btn-info"),
+    /** Couleur claire (code 7). */
+    CLAIR(7, "btn btn-light"),
+    /** Couleur foncée (code 8). */
+    FONCE(8, "btn btn-dark");
 
     /** Code numérique stocké en base pour cette couleur. */
     private final int code;
