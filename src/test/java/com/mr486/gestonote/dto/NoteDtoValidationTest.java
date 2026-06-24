@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class NoteDtoValidationTest {
 
+    // Indique si un champ donné est en violation de contrainte pour ce DTO.
     private boolean champEnViolation(NoteDto dto, String champ) {
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
             Validator validator = factory.getValidator();
