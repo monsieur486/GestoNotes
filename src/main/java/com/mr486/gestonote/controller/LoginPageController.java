@@ -5,17 +5,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * LoginPageController is a Spring MVC Controller that handles requests for the login page.
+ * Contrôleur de la page de connexion.
  */
 @Controller
 public class LoginPageController {
 
     /**
-     * This method is mapped to the "/login" URL and is responsible for handling the login requests.
-     * It sets the active page attribute to "login" and returns the name of the view to be rendered.
+     * Affiche le formulaire de connexion.
      *
-     * @param model the Model object which can be used to add attributes to the view
-     * @return the name of the view to be rendered
+     * <p><b>Exemple :</b> un GET sur {@code /login} marque l'onglet « login » actif et
+     * rend la vue {@code login}.</p>
+     *
+     * @param model modèle de la vue
+     * @return le nom de la vue à afficher
      */
     @RequestMapping(value = "/login")
     public String pageView(Model model) {

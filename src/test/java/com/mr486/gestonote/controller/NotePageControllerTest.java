@@ -1,0 +1,108 @@
+package com.mr486.gestonote.controller;
+
+import com.mr486.gestonote.configuration.SecurityConfiguration;
+import com.mr486.gestonote.model.Note;
+import com.mr486.gestonote.service.CategorieService;
+import com.mr486.gestonote.service.ListeNotesService;
+import com.mr486.gestonote.service.NoteService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+/**
+ * Tests web de {@link NotePageController}, sécurité incluse.
+ */
+@WebMvcTest(controllers = NotePageController.class,
+        properties = {"app.auth.user01.name=test", "app.auth.user01.password=test"})
+@Import(SecurityConfiguration.class)
+class NotePageControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private ListeNotesService listeNotesService;
+
+    @MockitoBean
+    private CategorieService categorieService;
+
+    @MockitoBean
+    private NoteService noteService;
+
+    @Test
+    void accesNonAuthentifieRedirigeVersLaConnexion() throws Exception {
+        mockMvc.perform(get("/notes"))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @WithMockUser
+    void afficheLeTableauDesNotes() throws Exception {
+        when(listeNotesService.getTableau()).thenReturn(List.of());
+
+        mockMvc.perform(get("/notes"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("notes"))
+                .andExpect(model().attribute("modeEdit", false));
+    }
+
+    @Test
+    @WithMockUser
+    void afficheLeTableauEnModeEdition() throws Exception {
+        when(listeNotesService.getTableau()).thenReturn(List.of());
+
+        mockMvc.perform(get("/notes").param("modeEdit", "true"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("modeEdit", true));
+    }
+
+    @Test
+    @WithMockUser
+    void supprimeUneNotePuisRedirige() throws Exception {
+        mockMvc.perform(delete("/notes/delete/5").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/notes"));
+
+        verify(listeNotesService).deleteNote(5L);
+    }
+
+    @Test
+    @WithMockUser
+    void afficheLeFormulaireDAjout() throws Exception {
+        when(categorieService.getAllCategoriesActives()).thenReturn(List.of());
+
+        mockMvc.perform(get("/notes/add/2"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("edition"))
+                .andExpect(model().attributeExists("note", "categories"));
+    }
+
+    @Test
+    @WithMockUser
+    void afficheLeFormulaireDeModification() throws Exception {
+        Note note = Note.builder().id(5).categorieId(2).titre("T").couleur(2).contenu("C").build();
+        when(noteService.getNoteById(5)).thenReturn(note);
+        when(categorieService.getAllCategoriesActives()).thenReturn(List.of());
+
+        mockMvc.perform(get("/notes/update/5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("edition"))
+                .andExpect(model().attributeExists("note", "categories"));
+    }
+}

@@ -1,33 +1,45 @@
 spring:
   config:
+    # Importe le fichier .env (s'il existe) pour alimenter les variables ci-dessous
     import: optional:file:.env[.properties]
 
   application:
-    name: gestojob-webclient
+    # Nom logique de l'application (logs, supervision)
+    name: gestonote
 
   datasource:
+    # URL JDBC vers le conteneur PostgreSQL (réseau Docker, service gestonote-db, port 5432)
     url: jdbc:postgresql://gestonote-db:5432/${POSTGRES_DB}
+    # Utilisateur de connexion à la base
     username: ${POSTGRES_USER}
+    # Mot de passe de connexion à la base
     password: ${POSTGRES_PASSWORD}
+    # Pilote JDBC PostgreSQL
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
+      # Aucune modification de schéma par Hibernate : le schéma est géré par Liquibase
       ddl-auto: validate
 
   liquibase:
+    # Journal de changements Liquibase appliqué au démarrage
     change-log: classpath:db/changelog/master.xml
 
   mvc:
     hiddenmethod:
       filter:
+        # Active le champ caché _method (formulaires HTML pour PUT/DELETE)
         enabled: true
 
 server:
+  # Port d'écoute HTTP de l'application
   port: ${DOCKER_UI_PORT}
 
 app:
   auth:
     user01:
+      # Identifiant de l'unique utilisateur applicatif
       name: ${APP_USERNAME}
+      # Mot de passe de l'unique utilisateur applicatif
       password: ${APP_PASSWORD}
