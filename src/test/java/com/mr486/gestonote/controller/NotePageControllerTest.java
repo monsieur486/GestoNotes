@@ -1,10 +1,12 @@
 package com.mr486.gestonote.controller;
 
 import com.mr486.gestonote.configuration.SecurityConfiguration;
+import com.mr486.gestonote.dto.NoteDto;
 import com.mr486.gestonote.model.Note;
 import com.mr486.gestonote.service.ListeNotesService;
 import com.mr486.gestonote.service.NoteService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -14,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -134,6 +137,12 @@ class NotePageControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/notes?modeEdit=true"));
 
-        verify(noteService).updateNote(org.mockito.ArgumentMatchers.eq(5), org.mockito.ArgumentMatchers.any());
+        ArgumentCaptor<NoteDto> captor = ArgumentCaptor.forClass(NoteDto.class);
+        verify(noteService).updateNote(org.mockito.ArgumentMatchers.eq(5), captor.capture());
+        NoteDto captured = captor.getValue();
+        assertThat(captured.getCategorieId()).isEqualTo(2);
+        assertThat(captured.getTitre()).isEqualTo("T2");
+        assertThat(captured.getCouleur()).isEqualTo(3);
+        assertThat(captured.getContenu()).isEqualTo("C2");
     }
 }
