@@ -9,7 +9,41 @@
 <body>
 <div th:replace="~{fragments/menu :: menu}"></div>
 <div class="container-fluid">
-    <h3>Categories</h3>
+    <h3 class="mb-3">Gestion des catégories</h3>
+    <table class="table table-striped align-middle">
+        <thead>
+        <tr>
+            <th>Catégorie</th>
+            <th>État</th>
+            <th class="text-end">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="categorie : ${categories}">
+            <td>
+                <form th:if="${categorie.estModifiable}"
+                      th:action="@{/categories/{id}/rename(id=${categorie.id})}"
+                      class="d-flex gap-2" method="post">
+                    <input type="text" name="denomination" class="form-control form-control-sm"
+                           th:value="${categorie.denomination}" required/>
+                    <button type="submit" class="btn btn-sm btn-primary">Renommer</button>
+                </form>
+                <span th:unless="${categorie.estModifiable}" th:text="${categorie.denomination}"></span>
+            </td>
+            <td>
+                <span th:if="${categorie.estActive}" class="badge bg-success">Active</span>
+                <span th:unless="${categorie.estActive}" class="badge bg-secondary">Inactive</span>
+            </td>
+            <td class="text-end">
+                <form th:action="@{/categories/{id}/toggle-active(id=${categorie.id})}" method="post"
+                      style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-outline-warning"
+                            th:text="${categorie.estActive} ? 'Désactiver' : 'Activer'"></button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
