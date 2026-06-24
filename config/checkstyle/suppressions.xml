@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<!--
+  Suppressions ciblées. À placer dans config/checkstyle/suppressions.xml.
+  Exemple : un service qui héberge des gabarits (modèles de courrier, HTML/texte
+  longs) n'a pas de sens à contraindre sur la longueur de ligne.
+  Décommenter et adapter au besoin :
+
+  <suppress files="ContenuService\.java" checks="LineLength"/>
+-->
+<suppressions>
+</suppressions>
