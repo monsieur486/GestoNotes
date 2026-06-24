@@ -12,14 +12,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configuration de la sécurité : règles d'accès, formulaire de connexion et utilisateur
+ * applicatif unique chargé depuis la configuration.
+ */
 @Configuration
 public class SecurityConfiguration {
+
+    /** Nom de l'utilisateur applicatif (variable d'environnement). */
     @Value("${app.auth.user01.name}")
     private String appUser01;
+
+    /** Mot de passe de l'utilisateur applicatif (variable d'environnement). */
     @Value("${app.auth.user01.password}")
     private String appPass01;
 
-
+    /**
+     * Définit la chaîne de filtres de sécurité : ressources publiques, zones protégées,
+     * connexion par formulaire et déconnexion.
+     *
+     * <p><b>Exemple :</b> {@code /css/**} et {@code /login} sont publics, {@code /notes/**}
+     * exige une authentification et {@code /admin/**} le rôle {@code ADMIN}.</p>
+     *
+     * @param http configurateur de sécurité HTTP fourni par Spring
+     * @return la chaîne de filtres de sécurité construite
+     * @throws Exception si la configuration de sécurité échoue
+     */
     @Bean
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -55,11 +73,28 @@ public class SecurityConfiguration {
         return http.build();
     }
 
+    /**
+     * Fournit l'encodeur de mots de passe (BCrypt).
+     *
+     * <p><b>Exemple :</b> {@code passwordEncoder().encode("secret")} produit un hachage
+     * BCrypt vérifiable à la connexion.</p>
+     *
+     * @return l'encodeur BCrypt
+     */
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Déclare l'unique utilisateur applicatif, doté des rôles {@code USER} et {@code ADMIN}.
+     *
+     * <p><b>Exemple :</b> l'utilisateur configuré peut se connecter et accéder aux zones
+     * {@code /notes/**} et {@code /admin/**}.</p>
+     *
+     * @param encoder encodeur utilisé pour hacher le mot de passe
+     * @return le gestionnaire d'utilisateurs en mémoire
+     */
     @Bean
     UserDetailsService users(PasswordEncoder encoder) {
         return new InMemoryUserDetailsManager(

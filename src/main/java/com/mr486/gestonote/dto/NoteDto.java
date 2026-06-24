@@ -6,16 +6,37 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Données de saisie d'une note (formulaire d'édition), avec conversion depuis et vers
+ * le modèle de persistance {@link Note}.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class NoteDto {
-    private Integer categorieId=1;
-    private String titre="";
-    private Integer couleur=1;
-    private String contenu="";
 
+    /** Identifiant de la catégorie de rattachement (catégorie 1 par défaut). */
+    private Integer categorieId = 1;
+
+    /** Titre saisi de la note. */
+    private String titre = "";
+
+    /** Code couleur saisi de la note (1 par défaut). */
+    private Integer couleur = 1;
+
+    /** Contenu saisi de la note. */
+    private String contenu = "";
+
+    /**
+     * Construit un DTO à partir d'une note du modèle.
+     *
+     * <p><b>Exemple :</b> {@code new NoteDto().fromModel(note)} recopie le titre, la
+     * couleur, le contenu et la catégorie de {@code note} dans un nouveau DTO.</p>
+     *
+     * @param note note source du modèle
+     * @return un DTO portant les valeurs de la note
+     */
     public NoteDto fromModel(Note note) {
         NoteDto noteDto = new NoteDto();
         noteDto.setCategorieId(note.getCategorieId());
@@ -25,7 +46,16 @@ public class NoteDto {
         return noteDto;
     }
 
-    public Note toModel(Note note){
+    /**
+     * Reporte les valeurs du DTO dans une note du modèle.
+     *
+     * <p><b>Exemple :</b> {@code dto.toModel(note)} écrase le titre, la couleur, le
+     * contenu et la catégorie de {@code note} avec ceux du DTO, puis retourne la note.</p>
+     *
+     * @param note note du modèle à alimenter
+     * @return la note mise à jour
+     */
+    public Note toModel(Note note) {
         note.setCategorieId(categorieId);
         note.setTitre(titre);
         note.setCouleur(couleur);
