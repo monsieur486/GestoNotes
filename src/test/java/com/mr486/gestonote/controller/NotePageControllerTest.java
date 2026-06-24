@@ -2,7 +2,6 @@ package com.mr486.gestonote.controller;
 
 import com.mr486.gestonote.configuration.SecurityConfiguration;
 import com.mr486.gestonote.model.Note;
-import com.mr486.gestonote.service.CategorieService;
 import com.mr486.gestonote.service.ListeNotesService;
 import com.mr486.gestonote.service.NoteService;
 import org.junit.jupiter.api.Test;
@@ -20,6 +19,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,9 +38,6 @@ class NotePageControllerTest {
 
     @MockitoBean
     private ListeNotesService listeNotesService;
-
-    @MockitoBean
-    private CategorieService categorieService;
 
     @MockitoBean
     private NoteService noteService;
@@ -85,24 +82,54 @@ class NotePageControllerTest {
     @Test
     @WithMockUser
     void afficheLeFormulaireDAjout() throws Exception {
-        when(categorieService.getAllCategoriesActives()).thenReturn(List.of());
-
         mockMvc.perform(get("/notes/add/2"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("edition"))
-                .andExpect(model().attributeExists("note", "categories"));
+                .andExpect(model().attributeExists("note", "formAction"));
     }
 
     @Test
     @WithMockUser
     void afficheLeFormulaireDeModification() throws Exception {
-        Note note = Note.builder().id(5).categorieId(2).titre("T").couleur(2).contenu("C").build();
-        when(noteService.getNoteById(5)).thenReturn(note);
-        when(categorieService.getAllCategoriesActives()).thenReturn(List.of());
+        when(noteService.getNoteById(5))
+                .thenReturn(Note.builder().id(5).categorieId(2).titre("T").couleur(2).contenu("C").build());
 
         mockMvc.perform(get("/notes/update/5"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("edition"))
-                .andExpect(model().attributeExists("note", "categories"));
+                .andExpect(model().attributeExists("note", "formAction"));
+    }
+
+    @Test
+    @WithMockUser
+    void creeUneNotePuisRedirige() throws Exception {
+        mockMvc.perform(post("/notes/add/2").with(csrf())
+                        .param("titre", "Courses").param("couleur", "2").param("contenu", "Pain"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/notes?modeEdit=true"));
+
+        verify(noteService).addNote(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    @WithMockUser
+    void refuseLaCreationSiTitreVide() throws Exception {
+        mockMvc.perform(post("/notes/add/2").with(csrf())
+                        .param("titre", "").param("couleur", "2").param("contenu", "Pain"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("edition"));
+
+        verify(noteService, org.mockito.Mockito.never()).addNote(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    @WithMockUser
+    void metAJourUneNotePuisRedirige() throws Exception {
+        mockMvc.perform(post("/notes/update/5").with(csrf())
+                        .param("categorieId", "2").param("titre", "T2").param("couleur", "3").param("contenu", "C2"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/notes?modeEdit=true"));
+
+        verify(noteService).updateNote(org.mockito.ArgumentMatchers.eq(5), org.mockito.ArgumentMatchers.any());
     }
 }

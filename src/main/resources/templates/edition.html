@@ -9,7 +9,55 @@
 <body>
 <div th:replace="~{fragments/menu :: menu}"></div>
 <div class="container-fluid">
-    <h3>Edition</h3>
+    <h3 class="mb-3">Édition de la note</h3>
+    <form th:action="@{${formAction}}" th:object="${note}" method="post" class="col-md-6">
+        <input type="hidden" th:field="*{categorieId}"/>
+
+        <div class="mb-3">
+            <label for="titre" class="form-label">Titre</label>
+            <input type="text" id="titre" th:field="*{titre}" class="form-control"/>
+            <div class="text-danger" th:if="${#fields.hasErrors('titre')}" th:errors="*{titre}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Couleur</label>
+            <div class="d-flex flex-wrap gap-2">
+                <label class="btn btn-primary">
+                    <input type="radio" th:field="*{couleur}" value="1" hidden/> Bleu
+                </label>
+                <label class="btn btn-success">
+                    <input type="radio" th:field="*{couleur}" value="2" hidden/> Vert
+                </label>
+                <label class="btn btn-warning">
+                    <input type="radio" th:field="*{couleur}" value="3" hidden/> Jaune
+                </label>
+                <label class="btn btn-danger">
+                    <input type="radio" th:field="*{couleur}" value="4" hidden/> Rouge
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" th:field="*{couleur}" value="5" hidden/> Gris
+                </label>
+                <label class="btn btn-info">
+                    <input type="radio" th:field="*{couleur}" value="6" hidden/> Cyan
+                </label>
+                <label class="btn btn-light border">
+                    <input type="radio" th:field="*{couleur}" value="7" hidden/> Clair
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" th:field="*{couleur}" value="8" hidden/> Foncé
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="contenu" class="form-label">Contenu</label>
+            <textarea id="contenu" th:field="*{contenu}" class="form-control" rows="6"></textarea>
+            <div class="text-danger" th:if="${#fields.hasErrors('contenu')}" th:errors="*{contenu}"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">&#128190; Enregistrer</button>
+        <a th:href="@{/notes(modeEdit=true)}" class="btn btn-secondary">Annuler</a>
+    </form>
 </div>
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
