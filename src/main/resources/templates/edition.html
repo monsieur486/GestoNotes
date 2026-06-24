@@ -11,7 +11,15 @@
 <div class="container-fluid">
     <h3 class="mb-3">Édition de la note</h3>
     <form th:action="@{${formAction}}" th:object="${note}" method="post" class="col-md-6">
-        <input type="hidden" th:field="*{categorieId}"/>
+        <div class="mb-3" th:if="${categories != null}">
+            <label for="categorieId" class="form-label">Catégorie</label>
+            <select id="categorieId" th:field="*{categorieId}" class="form-select">
+                <option th:each="cat : ${categories}"
+                        th:value="${cat.id}"
+                        th:text="${cat.denomination}"></option>
+            </select>
+        </div>
+        <input type="hidden" th:if="${categories == null}" th:field="*{categorieId}"/>
 
         <div class="mb-3">
             <label for="titre" class="form-label">Titre</label>
