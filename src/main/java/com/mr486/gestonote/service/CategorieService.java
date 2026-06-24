@@ -98,7 +98,7 @@ public class CategorieService {
             log.warn("tentative de désactivation de la catégorie non modifiable active {}", id);
             throw new IllegalArgumentException("Catégorie non modifiable active : " + id);
         }
-        categorie.setEstActive(!categorie.getEstActive());
+        categorie.setEstActive(!Boolean.TRUE.equals(categorie.getEstActive()));
         categorieRepository.save(categorie);
         log.info("état actif de la catégorie {} basculé à {}", id, categorie.getEstActive());
     }
