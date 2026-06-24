@@ -15,7 +15,7 @@
             <button class="nav-link"
                     data-bs-toggle="tab"
                     role="tab"
-                    th:classappend="${iter.first} ? 'active'"
+                    th:classappend="${(catActif != null and categorie.id == catActif) or (catActif == null and iter.first)} ? 'active'"
                     th:data-bs-target="${'#pane-' + iter.index}"
                     th:id="${'tab-' + iter.index}"
                     th:text="${categorie.denomination}"
@@ -29,7 +29,7 @@
         <div class="tab-pane fade"
              role="tabpanel"
              th:aria-labelledby="${'tab-' + iter.index}"
-             th:classappend="${iter.first} ? 'show active'"
+             th:classappend="${(catActif != null and categorie.id == catActif) or (catActif == null and iter.first)} ? 'show active'"
              th:each="categorie, iter : ${categories}"
              th:id="${'pane-' + iter.index}"
              th:if="${categorie != null}">
@@ -63,6 +63,7 @@
                           method="post"
                           class="postit-delete">
                         <input type="hidden" name="_method" value="delete"/>
+                        <input type="hidden" name="categorieId" th:value="${note.categorieId}"/>
                         <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
                     </form>
                 </div>

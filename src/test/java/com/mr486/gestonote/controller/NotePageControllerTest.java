@@ -81,12 +81,23 @@ class NotePageControllerTest {
 
     @Test
     @WithMockUser
-    void supprimeUneNotePuisRedirige() throws Exception {
-        mockMvc.perform(delete("/notes/delete/5").with(csrf()))
+    void supprimeUneNotePuisRedirigeEnEditionSurLOnglet() throws Exception {
+        mockMvc.perform(delete("/notes/delete/5").with(csrf()).param("categorieId", "2"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/notes"));
+                .andExpect(redirectedUrl("/notes?modeEdit=true&cat=2"));
 
         verify(listeNotesService).deleteNote(5L);
+    }
+
+    @Test
+    @WithMockUser
+    void exposeLOngletActifDemande() throws Exception {
+        when(listeNotesService.getTableau()).thenReturn(java.util.List.of());
+
+        mockMvc.perform(get("/notes").param("modeEdit", "true").param("cat", "2"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("notes"))
+                .andExpect(model().attribute("catActif", 2));
     }
 
     @Test

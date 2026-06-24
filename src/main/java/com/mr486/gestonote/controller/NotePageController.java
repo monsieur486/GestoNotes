@@ -33,36 +33,46 @@ public class NotePageController {
     private final CategorieService categorieService;
 
     /**
-     * Affiche le tableau des notes, éventuellement en mode édition.
+     * Affiche le tableau des notes, éventuellement en mode édition et sur un onglet donné.
      *
-     * <p><b>Exemple :</b> un GET sur {@code /notes?modeEdit=true} affiche le tableau avec
-     * les actions d'édition visibles.</p>
+     * <p><b>Exemple :</b> un GET sur {@code /notes?modeEdit=true&cat=2} affiche le tableau en
+     * mode édition avec l'onglet de la catégorie 2 actif.</p>
      *
      * @param model    modèle de la vue
      * @param modeEdit {@code true} pour activer le mode édition (optionnel)
+     * @param cat      identifiant de la catégorie dont l'onglet doit être actif (optionnel)
      * @return le nom de la vue à afficher
      */
     @GetMapping(value = "/notes")
-    public String pageView(Model model, @RequestParam(required = false) Boolean modeEdit) {
+    public String pageView(Model model, @RequestParam(required = false) Boolean modeEdit,
+                           @RequestParam(required = false) Integer cat) {
         model.addAttribute("page_active", "notes");
         model.addAttribute("categories", listeNotesService.getTableau());
         model.addAttribute("modeEdit", modeEdit != null && modeEdit);
+        model.addAttribute("catActif", cat);
         return "notes";
     }
 
     /**
-     * Supprime une note puis redirige vers le tableau.
+     * Supprime une note puis redirige vers le tableau, en restant en mode édition et sur
+     * l'onglet de la catégorie d'origine.
      *
-     * <p><b>Exemple :</b> un DELETE sur {@code /notes/delete/5} supprime la note 5.</p>
+     * <p><b>Exemple :</b> un DELETE sur {@code /notes/delete/5} avec {@code categorieId=2}
+     * supprime la note 5 et redirige vers {@code /notes?modeEdit=true&cat=2}.</p>
      *
-     * @param id identifiant de la note à supprimer
+     * @param id          identifiant de la note à supprimer
+     * @param categorieId identifiant de la catégorie d'origine (pour réactiver son onglet)
      * @return la redirection vers le tableau des notes
      */
     @DeleteMapping(value = "/notes/delete/{id}")
-    public String deleteNote(@PathVariable Long id) {
+    public String deleteNote(@PathVariable Long id, @RequestParam(required = false) Integer categorieId) {
         listeNotesService.deleteNote(id);
         log.info("suppression de la note {} depuis l'interface", id);
-        return "redirect:/notes";
+        String redirection = "redirect:/notes?modeEdit=true";
+        if (categorieId != null) {
+            redirection += "&cat=" + categorieId;
+        }
+        return redirection;
     }
 
     /**
