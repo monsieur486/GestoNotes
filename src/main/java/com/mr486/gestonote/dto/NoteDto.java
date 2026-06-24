@@ -1,7 +1,10 @@
 package com.mr486.gestonote.dto;
 
 import com.mr486.gestonote.model.Note;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
@@ -20,6 +23,7 @@ public class NoteDto {
 
     /** Identifiant de la catégorie de rattachement (catégorie 1 par défaut). */
     @Default
+    @NotNull(message = "La catégorie est obligatoire")
     private Integer categorieId = 1;
 
     /** Titre saisi de la note. */
@@ -27,8 +31,11 @@ public class NoteDto {
     @NotBlank(message = "Le titre est obligatoire")
     private String titre = "";
 
-    /** Code couleur saisi de la note (1 par défaut). */
+    /** Code couleur saisi de la note (entre 1 et 8, 1 par défaut). */
     @Default
+    @NotNull(message = "La couleur est obligatoire")
+    @Min(value = 1, message = "Couleur invalide")
+    @Max(value = 8, message = "Couleur invalide")
     private Integer couleur = 1;
 
     /** Contenu saisi de la note. */

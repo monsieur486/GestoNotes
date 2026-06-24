@@ -35,6 +35,13 @@ spring:
 server:
   # Port d'écoute HTTP de l'application
   port: ${DOCKER_UI_PORT}
+  error:
+    # Ne jamais exposer le message d'exception dans la page d'erreur
+    include-message: never
+    # Ne jamais exposer la trace d'appel
+    include-stacktrace: never
+    # Ne jamais exposer le type d'exception
+    include-exception: false
 
 app:
   auth:

@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(controllers = NotePageController.class,
         properties = {"app.auth.user01.name=test", "app.auth.user01.password=test"})
-@Import(SecurityConfiguration.class)
+@Import({SecurityConfiguration.class, GlobalExceptionHandler.class})
 class NotePageControllerTest {
 
     @Autowired
@@ -220,5 +221,27 @@ class NotePageControllerTest {
         assertThat(captured.getTitre()).isEqualTo("T2");
         assertThat(captured.getCouleur()).isEqualTo(3);
         assertThat(captured.getContenu()).isEqualTo("C2");
+    }
+
+    @Test
+    @WithMockUser
+    void exposeLEnTeteContentSecurityPolicy() throws Exception {
+        when(listeNotesService.getTableau()).thenReturn(List.of());
+
+        mockMvc.perform(get("/notes"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Security-Policy",
+                        org.hamcrest.Matchers.containsString("default-src 'self'")));
+    }
+
+    @Test
+    @WithMockUser
+    void redirigeVersLeTableauQuandLaNoteEstIntrouvable() throws Exception {
+        when(noteService.getNoteById(999))
+                .thenThrow(new IllegalArgumentException("Note introuvable pour l'identifiant : 999"));
+
+        mockMvc.perform(get("/notes/update/999"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/notes?modeEdit=true"));
     }
 }

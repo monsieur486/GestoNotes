@@ -18,6 +18,9 @@ import java.util.List;
 @Slf4j
 public class CategorieService {
 
+    /** Longueur maximale autorisée pour le libellé d'une catégorie. */
+    private static final int MAX_DENOMINATION = 100;
+
     private final CategorieRepository categorieRepository;
 
     /**
@@ -76,7 +79,12 @@ public class CategorieService {
             log.warn("tentative de modification de la catégorie non modifiable {}", id);
             throw new IllegalArgumentException("Catégorie non modifiable : " + id);
         }
-        categorie.setDenomination(categorieDto.getDenomination());
+        String denomination = categorieDto.getDenomination() == null ? "" : categorieDto.getDenomination().trim();
+        if (denomination.isEmpty() || denomination.length() > MAX_DENOMINATION) {
+            log.warn("renommage refusé pour la catégorie {} : libellé invalide", id);
+            throw new IllegalArgumentException("Libellé de catégorie invalide : " + id);
+        }
+        categorie.setDenomination(denomination);
         categorieRepository.save(categorie);
         log.info("catégorie {} renommée", id);
     }

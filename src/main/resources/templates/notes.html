@@ -51,7 +51,6 @@
                         <span class="postit-preview" th:text="${note.contenu}"></span>
                     </a>
                     <button th:unless="${modeEdit}"
-                            onclick="navigator.clipboard.writeText(this.dataset.contenu)"
                             class="postit" th:classappend="${note.couleur}"
                             th:data-contenu="${note.contenu}"
                             type="button">

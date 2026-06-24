@@ -2,6 +2,7 @@ package com.mr486.gestonote.service;
 
 import com.mr486.gestonote.dto.NoteDto;
 import com.mr486.gestonote.model.Note;
+import com.mr486.gestonote.persistance.CategorieRepository;
 import com.mr486.gestonote.persistance.NoteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import java.util.List;
 public class NoteService {
 
     private final NoteRepository noteRepository;
+    private final CategorieRepository categorieRepository;
 
     /**
      * Liste les notes d'une catégorie, triées par identifiant croissant.
@@ -54,8 +56,10 @@ public class NoteService {
      * portée par le DTO et la rend visible dans le tableau.</p>
      *
      * @param noteDto données de la note à créer
+     * @throws IllegalArgumentException si la catégorie de rattachement n'existe pas
      */
     public void addNote(NoteDto noteDto) {
+        verifierCategorieExiste(noteDto.getCategorieId());
         Note note = noteDto.toModel(new Note());
         noteRepository.save(note);
         log.info("note créée dans la catégorie {}", note.getCategorieId());
@@ -69,9 +73,10 @@ public class NoteService {
      *
      * @param id      identifiant de la note à modifier
      * @param noteDto nouvelles données de la note
-     * @throws IllegalArgumentException si aucune note ne correspond à l'identifiant
+     * @throws IllegalArgumentException si la note ou la catégorie de rattachement n'existe pas
      */
     public void updateNote(Integer id, NoteDto noteDto) {
+        verifierCategorieExiste(noteDto.getCategorieId());
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Note introuvable pour l'identifiant : " + id));
         note = noteDto.toModel(note);
@@ -88,7 +93,18 @@ public class NoteService {
      * @param id identifiant de la note à supprimer
      */
     public void deleteNote(Integer id) {
+        if (!noteRepository.existsById(id)) {
+            log.warn("suppression ignorée : note {} introuvable", id);
+            return;
+        }
         noteRepository.deleteById(id);
         log.info("note {} supprimée", id);
+    }
+
+    // Vérifie l'existence de la catégorie de rattachement avant de persister une note.
+    private void verifierCategorieExiste(Integer categorieId) {
+        if (categorieId == null || !categorieRepository.existsById(categorieId)) {
+            throw new IllegalArgumentException("Catégorie introuvable pour l'identifiant : " + categorieId);
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.mr486.gestonote.service;
 
 import com.mr486.gestonote.dto.NoteDto;
 import com.mr486.gestonote.model.Note;
+import com.mr486.gestonote.persistance.CategorieRepository;
 import com.mr486.gestonote.persistance.NoteRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +28,9 @@ class NoteServiceTest {
 
     @Mock
     private NoteRepository noteRepository;
+
+    @Mock
+    private CategorieRepository categorieRepository;
 
     @InjectMocks
     private NoteService noteService;
@@ -57,6 +62,7 @@ class NoteServiceTest {
 
     @Test
     void addNotePersisteLaNoteIssueDuDto() {
+        when(categorieRepository.existsById(2)).thenReturn(true);
         NoteDto dto = NoteDto.builder().categorieId(2).titre("T").couleur(2).contenu("C").build();
 
         noteService.addNote(dto);
@@ -68,7 +74,19 @@ class NoteServiceTest {
     }
 
     @Test
+    void addNoteLeveUneExceptionSiCategorieIntrouvable() {
+        when(categorieRepository.existsById(99)).thenReturn(false);
+        NoteDto dto = NoteDto.builder().categorieId(99).titre("T").couleur(2).contenu("C").build();
+
+        assertThatThrownBy(() -> noteService.addNote(dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("99");
+        verify(noteRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
     void updateNoteMetAJourLaNoteExistante() {
+        when(categorieRepository.existsById(3)).thenReturn(true);
         Note existante = Note.builder().id(5).titre("Ancien").build();
         when(noteRepository.findById(5)).thenReturn(Optional.of(existante));
         NoteDto dto = NoteDto.builder().categorieId(3).titre("Nouveau").couleur(1).contenu("C").build();
@@ -82,6 +100,7 @@ class NoteServiceTest {
 
     @Test
     void updateNoteLeveUneExceptionSiIntrouvable() {
+        when(categorieRepository.existsById(1)).thenReturn(true);
         when(noteRepository.findById(5)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> noteService.updateNote(5, new NoteDto()))
@@ -89,9 +108,20 @@ class NoteServiceTest {
     }
 
     @Test
-    void deleteNoteDelegueAuDepot() {
+    void deleteNoteSupprimeLaNoteExistante() {
+        when(noteRepository.existsById(5)).thenReturn(true);
+
         noteService.deleteNote(5);
 
         verify(noteRepository).deleteById(5);
+    }
+
+    @Test
+    void deleteNoteIgnoreUneNoteIntrouvable() {
+        when(noteRepository.existsById(5)).thenReturn(false);
+
+        noteService.deleteNote(5);
+
+        verify(noteRepository, never()).deleteById(5);
     }
 }

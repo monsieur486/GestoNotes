@@ -119,4 +119,40 @@ class CategorieServiceTest {
                 .hasMessageContaining("non modifiable");
         verify(categorieRepository, never()).save(categorie);
     }
+
+    @Test
+    void updateCategorieRefuseUnLibelleVide() {
+        Categorie categorie = Categorie.builder().id(2).estModifiable(true).build();
+        when(categorieRepository.findById(2)).thenReturn(Optional.of(categorie));
+
+        assertThatThrownBy(() ->
+                categorieService.updateCategorie(2, CategorieDto.builder().denomination("   ").build()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("invalide");
+        verify(categorieRepository, never()).save(categorie);
+    }
+
+    @Test
+    void updateCategorieRefuseUnLibelleTropLong() {
+        Categorie categorie = Categorie.builder().id(2).estModifiable(true).build();
+        when(categorieRepository.findById(2)).thenReturn(Optional.of(categorie));
+        String tropLong = "a".repeat(101);
+
+        assertThatThrownBy(() ->
+                categorieService.updateCategorie(2, CategorieDto.builder().denomination(tropLong).build()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("invalide");
+        verify(categorieRepository, never()).save(categorie);
+    }
+
+    @Test
+    void updateCategorieNettoieLesEspacesDuLibelle() {
+        Categorie categorie = Categorie.builder().id(2).denomination("Ancien").estModifiable(true).build();
+        when(categorieRepository.findById(2)).thenReturn(Optional.of(categorie));
+
+        categorieService.updateCategorie(2, CategorieDto.builder().denomination("  Idées  ").build());
+
+        verify(categorieRepository).save(categorie);
+        assertThat(categorie.getDenomination()).isEqualTo("Idées");
+    }
 }

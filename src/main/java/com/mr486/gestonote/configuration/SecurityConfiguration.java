@@ -3,7 +3,6 @@ package com.mr486.gestonote.configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -41,7 +40,22 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; "
+                                        + "base-uri 'self'; "
+                                        + "img-src 'self' data:; "
+                                        + "script-src 'self' https://cdn.jsdelivr.net; "
+                                        + "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net "
+                                        + "https://fonts.googleapis.com; "
+                                        + "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
+                                        + "frame-ancestors 'none'"
+                        ))
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
