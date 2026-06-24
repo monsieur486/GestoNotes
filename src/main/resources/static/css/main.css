@@ -2,27 +2,61 @@
     margin-top: 60px;
 }
 
-/* Tableau (board) sur lequel sont épinglés les post-it */
+/* Tableau (board) sur lequel sont épinglés les post-it : vrai panneau de liège encadré */
 .board {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
-    gap: 1.25rem;
-    padding: 1.5rem;
-    min-height: 220px;
-    background-color: #b9926b;
-    background-image:
-            linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-    background-size: 22px 22px;
-    border-radius: 0.5rem;
-    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.25);
+    gap: 1.6rem;
+    padding: 2rem;
+    min-height: 260px;
+    background-color: #c9a87a;
+    background-image: url("../img/cork-board.jpg");
+    background-size: 360px;
+    background-repeat: repeat;
+    border: 16px solid #6b4423;
+    border-radius: 6px;
+    box-shadow:
+            inset 0 0 60px rgba(0, 0, 0, 0.35),
+            inset 0 0 0 2px rgba(0, 0, 0, 0.2),
+            0 10px 24px rgba(0, 0, 0, 0.35);
 }
 
-/* Conteneur d'un post-it : porte la rotation, le survol et le clic */
+/* Conteneur d'un post-it : porte la rotation, le survol, le clic et la punaise */
 .postit-wrap {
     position: relative;
     transition: transform 0.15s ease;
+}
+
+/* Punaise plantée au centre haut du post-it (couleur variée par position) */
+.postit-wrap::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff8a8a 0%, #d6322a 45%, #8c1c14 100%);
+    box-shadow:
+            0 3px 5px rgba(0, 0, 0, 0.45),
+            inset -1px -1px 2px rgba(0, 0, 0, 0.35),
+            inset 2px 2px 3px rgba(255, 255, 255, 0.45);
+    z-index: 3;
+    pointer-events: none;
+}
+
+.postit-wrap:nth-child(4n + 2)::before {
+    background: radial-gradient(circle at 35% 30%, #8ab6ff 0%, #2a6bd6 45%, #143d8c 100%);
+}
+
+.postit-wrap:nth-child(4n + 3)::before {
+    background: radial-gradient(circle at 35% 30%, #ffe08a 0%, #e0b62a 45%, #8c6e14 100%);
+}
+
+.postit-wrap:nth-child(4n + 4)::before {
+    background: radial-gradient(circle at 35% 30%, #9be89b 0%, #2fae3a 45%, #146b1c 100%);
 }
 
 .postit-wrap:nth-child(odd) {
@@ -46,9 +80,9 @@
 .postit {
     display: flex;
     flex-direction: column;
-    width: 190px;
-    min-height: 190px;
-    padding: 0.9rem;
+    width: 285px;
+    min-height: 285px;
+    padding: 2.1rem 1.35rem 1.35rem;
     border: none;
     border-radius: 2px;
     text-align: left;
@@ -64,22 +98,24 @@
 }
 
 .postit-title {
+    font-family: "Caveat", "Comic Sans MS", cursive;
     font-weight: 700;
-    font-size: 1.05rem;
-    line-height: 1.3rem;
-    margin-bottom: 0.45rem;
+    font-size: 2.3rem;
+    line-height: 2.15rem;
+    margin-bottom: 0.6rem;
     word-break: break-word;
 }
 
 /* Aperçu du contenu : quelques lignes seulement puis « … » */
 .postit-preview {
-    font-size: 0.85rem;
-    line-height: 1.2rem;
+    font-family: "Caveat", "Comic Sans MS", cursive;
+    font-size: 1.7rem;
+    line-height: 1.85rem;
     white-space: pre-wrap;
     word-break: break-word;
     display: -webkit-box;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
