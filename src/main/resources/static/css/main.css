@@ -2,3 +2,92 @@
     margin-top: 60px;
 }
 
+/* Tableau (board) sur lequel sont épinglés les post-it */
+.board {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    min-height: 220px;
+    background-color: #b9926b;
+    background-image:
+            linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+    border-radius: 0.5rem;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Conteneur d'un post-it : porte la rotation, le survol et le clic */
+.postit-wrap {
+    position: relative;
+    transition: transform 0.15s ease;
+}
+
+.postit-wrap:nth-child(odd) {
+    transform: rotate(-2deg);
+}
+
+.postit-wrap:nth-child(even) {
+    transform: rotate(1.5deg);
+}
+
+.postit-wrap:hover {
+    transform: rotate(0deg) translateY(-6px) scale(1.04);
+    z-index: 2;
+}
+
+.postit-wrap:active {
+    transform: scale(0.97);
+}
+
+/* Le post-it lui-même */
+.postit {
+    display: flex;
+    flex-direction: column;
+    width: 190px;
+    min-height: 190px;
+    padding: 0.9rem;
+    border: none;
+    border-radius: 2px;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 3px 5px 10px rgba(0, 0, 0, 0.3);
+    transition: box-shadow 0.15s ease;
+}
+
+.postit-wrap:hover .postit {
+    box-shadow: 5px 12px 20px rgba(0, 0, 0, 0.4);
+}
+
+.postit-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.3rem;
+    margin-bottom: 0.45rem;
+    word-break: break-word;
+}
+
+/* Aperçu du contenu : quelques lignes seulement puis « … » */
+.postit-preview {
+    font-size: 0.85rem;
+    line-height: 1.2rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Bouton de suppression épinglé en haut à droite du post-it (mode édition) */
+.postit-delete {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+}
+

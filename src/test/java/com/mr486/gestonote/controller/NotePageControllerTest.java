@@ -51,7 +51,11 @@ class NotePageControllerTest {
     @Test
     @WithMockUser
     void afficheLeTableauDesNotes() throws Exception {
-        when(listeNotesService.getTableau()).thenReturn(List.of());
+        com.mr486.gestonote.dto.NoteHtml note = com.mr486.gestonote.dto.NoteHtml.builder()
+                .id(5).categorieId(2).titre("Courses").couleur("btn btn-success").contenu("Pain, lait").build();
+        com.mr486.gestonote.dto.CategorieHtml categorie = com.mr486.gestonote.dto.CategorieHtml.builder()
+                .id(2).denomination("Idées").notes(java.util.List.of(note)).build();
+        when(listeNotesService.getTableau()).thenReturn(java.util.List.of(categorie));
 
         mockMvc.perform(get("/notes"))
                 .andExpect(status().isOk())
