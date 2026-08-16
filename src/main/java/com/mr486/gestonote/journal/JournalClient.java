@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,28 @@ import org.slf4j.LoggerFactory;
  * {@code JournalClient client = new JournalClient(url, jeton, "gestoturf");}
  * puis {@code client.emettre("appli.demarrage", "info", "Application démarrée");}</p>
  */
+// PMD signale ici deux choses, et l'on choisit de les taire EN CONNAISSANCE DE CAUSE plutôt
+// que de les contourner :
+//
+//   TooManyMethods — la classe ferait un découpage naturel (sérialisation d'un côté, file
+//   d'envoi de l'autre). Mais elle « tient volontairement en un seul fichier » pour être COPIÉE
+//   dans cinq applications aux cycles de construction indépendants ; la scinder ferait deux
+//   fichiers à recopier, à versionner et à garder en phase. Le compteur perdrait ce que la
+//   copie gagnerait.
+//
+//   CyclomaticComplexity — elle vise « echapper », dont la complexité EST la spécification :
+//   sept caractères JSON à échapper, plus les non imprimables. La découper en sous-méthodes
+//   déplacerait les branches sans rien clarifier.
+//
+// Les deux sont des conflits avec une décision de conception documentée, pas des défauts.
+//   GodClass — même conflit, vu par une autre règle : le nombre de méthodes, de champs et
+//   de branches d'une classe qui fait tout ce qu'il faut pour ne rien coûter à son hôte.
+//
+//   TropDeCollaborateursInjectes — faux positif : cette classe n'injecte RIEN. Elle n'a pas de
+//   constructeur Spring, ses champs sont sa configuration et son état interne, et c'est
+//   précisément ce qui lui permet d'être copiée sans dépendre d'un conteneur.
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.CyclomaticComplexity", "PMD.GodClass",
+                   "PMD.TropDeCollaborateursInjectes"})
 public class JournalClient implements AutoCloseable {
 
     /** Nombre d'événements gardés en attente. Au-delà, le plus ancien est écarté. */
@@ -87,9 +110,14 @@ public class JournalClient implements AutoCloseable {
     private final String url;
     private final String jeton;
     private final String composant;
-    private final ArrayBlockingQueue<EvenementSortant> file =
+    /**
+     * Déclarée par son CONTRAT et non par sa classe : rien ici n'a besoin de savoir que la file
+     * est bornée par un tableau, et le jour où une autre implémentation conviendrait mieux, seule
+     * cette ligne changerait.
+     */
+    private final BlockingQueue<EvenementSortant> file =
             new ArrayBlockingQueue<>(TAILLE_FILE);
-    private final AtomicLong pertes = new AtomicLong();
+    private final AtomicLong compteurPertes = new AtomicLong();
     private final Thread fil;
 
     /**
@@ -123,7 +151,7 @@ public class JournalClient implements AutoCloseable {
         this.url = url;
         this.jeton = jeton;
         this.composant = composant;
-        this.configure = url != null && !url.isBlank() && jeton != null && !jeton.isBlank();
+        this.configure = adresseUtilisable(url) && jeton != null && !jeton.isBlank();
 
         if (!configure) {
             LOG.info("Journal central non configuré : émission désactivée.");
@@ -133,6 +161,30 @@ public class JournalClient implements AutoCloseable {
         this.fil = new Thread(this::boucler, "journal-client");
         this.fil.setDaemon(true);
         this.fil.start();
+    }
+
+    // L'adresse vient de la configuration, jamais d'un utilisateur — mais rien ne la validait.
+    // « file:///etc/passwd » ou « jar:... » auraient été ouverts sans un mot, et une faute de
+    // frappe dans un .env aurait produit un fil tentant indéfiniment une adresse absurde.
+    //
+    // Une adresse refusée rend le client INERTE, exactement comme une configuration vide : elle
+    // ne lève pas. L'instrumentation ne doit jamais empêcher une application de démarrer, et
+    // c'est la propriété qui gouverne toute cette classe.
+    private static boolean adresseUtilisable(String url) {
+        if (url == null || url.isBlank()) {
+            return false;
+        }
+        try {
+            String schema = URI.create(url.trim()).getScheme();
+            boolean acceptee = "http".equalsIgnoreCase(schema) || "https".equalsIgnoreCase(schema);
+            if (!acceptee) {
+                LOG.warn("Journal central : adresse ignorée, schéma « {} » non accepté.", schema);
+            }
+            return acceptee;
+        } catch (IllegalArgumentException adresseIllisible) {
+            LOG.warn("Journal central : adresse illisible, émission désactivée.");
+            return false;
+        }
     }
 
     /**
@@ -261,9 +313,9 @@ public class JournalClient implements AutoCloseable {
         }
         if (!file.offer(evenement)) {
             file.poll();
-            pertes.incrementAndGet();
+            compteurPertes.incrementAndGet();
             if (!file.offer(evenement)) {
-                pertes.incrementAndGet();
+                compteurPertes.incrementAndGet();
             }
         }
     }
@@ -286,7 +338,7 @@ public class JournalClient implements AutoCloseable {
      * @return le compteur de pertes
      */
     public long pertes() {
-        return pertes.get();
+        return compteurPertes.get();
     }
 
     /**
@@ -322,6 +374,7 @@ public class JournalClient implements AutoCloseable {
     // Le fil d'envoi. Il ne meurt jamais d'une exception : une erreur non rattrapée le
     // tuerait, et l'application émettrait alors dans une file que plus personne ne vide —
     // une panne parfaitement silencieuse.
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private void boucler() {
         while (actif) {
             try {
@@ -347,10 +400,10 @@ public class JournalClient implements AutoCloseable {
             return;
         }
         if (!poster(lot)) {
-            pertes.addAndGet(lot.size());
+            compteurPertes.addAndGet(lot.size());
             return;
         }
-        long perdus = pertes.getAndSet(0);
+        long perdus = compteurPertes.getAndSet(0);
         if (perdus > 0) {
             // Sans cet événement, un incident de connectivité effacerait sa propre trace :
             // le journal ne saurait jamais qu'il lui manque quelque chose.
