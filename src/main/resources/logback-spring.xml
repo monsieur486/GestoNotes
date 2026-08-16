@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Journalisation de l'application.
+
+  Tout reste sur la sortie standard, comme avant, SAUF les échecs de connexion, qui vont
+  EN PLUS dans un fichier dédié. La raison est extérieure à l'application : fail2ban doit
+  pouvoir lire ces échecs, et il ne peut pas suivre le journal Docker — son chemin contient
+  l'identifiant du conteneur, qui change à chaque recréation. Un jail pointant sur l'ancien
+  fichier ne bannirait plus rien, sans qu'aucune erreur ne le signale.
+
+  Le chemin est paramétrable : en production, le conteneur monte /journaux depuis la VM ;
+  en développement, un simple sous-répertoire du projet, ignoré par git.
+-->
+<configuration>
+
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+  <springProperty scope="context" name="cheminConnexions" source="journal.connexions.chemin"
+                  defaultValue="logs/connexions.log"/>
+
+  <appender name="CONNEXIONS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${cheminConnexions}</file>
+    <!--
+      Format volontairement plat, et non le format de Spring Boot : chaque ligne doit être
+      lisible par une expression régulière simple. L'horodatage est en tête, comme fail2ban
+      l'attend par défaut.
+    -->
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} %msg%n</pattern>
+      <charset>UTF-8</charset>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${cheminConnexions}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <!--
+        Sept jours suffisent très largement : la fenêtre de fail2ban est de dix minutes, et
+        ce fichier ne porte que des tentatives échouées, pas du trafic.
+      -->
+      <maxHistory>7</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <!--
+    additivity reste à « true » : la ligne part AUSSI sur la sortie standard, donc dans le
+    journal Docker, où elle sert au dépannage courant. Le fichier n'est pas un remplacement,
+    c'est un point d'ancrage stable pour fail2ban.
+  -->
+  <logger name="securite.connexion" level="WARN">
+    <appender-ref ref="CONNEXIONS"/>
+  </logger>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+</configuration>

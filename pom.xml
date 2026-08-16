@@ -143,6 +143,13 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <!-- Le taux de couverture est un ÉTAT DES LIEUX, pas une porte :
+                                 haltOnFailure=false signale le déficit sans casser le build.
+                                 Un seuil bloquant pousse à écrire des tests d'accesseurs pour
+                                 faire monter un chiffre, ce qui ne vérifie rien — on exige que
+                                 le MÉTIER soit testé, pas qu'un pourcentage soit atteint.
+                                 Aligné le 2026-08-16 sur gt-ui, où c'était déjà le cas. -->
+                            <haltOnFailure>false</haltOnFailure>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>

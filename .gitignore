@@ -33,3 +33,6 @@ build/
 .vscode/
 
 .env
+
+# Journal local des échecs de connexion (production : volume monté)
+logs/

@@ -42,6 +42,21 @@ server:
     include-stacktrace: never
     # Ne jamais exposer le type d'exception
     include-exception: false
+  # Fait lire X-Forwarded-For : sans ce réglage, l'application voit l'adresse de
+  # Traefik (172.x) pour TOUS les clients. Les échecs de connexion journalisés
+  # porteraient la même adresse pour tout le monde, et fail2ban finirait par
+  # bannir le proxy — coupant les cinq sites de la machine d'un coup.
+  #
+  # C'est sûr ici parce que l'application ne publie aucun port : Traefik est le
+  # seul à pouvoir l'atteindre, et personne ne peut donc forger cet en-tête.
+  forward-headers-strategy: native
+
+# --- Journal des échecs de connexion ------------------------------------------
+# Fichier lu par fail2ban sur la machine d'accueil. En production, le conteneur
+# monte /journaux depuis la VM ; la valeur par défaut ne sert qu'en dev.
+journal:
+  connexions:
+    chemin: ${JOURNAL_CONNEXIONS:logs/connexions.log}
 
 app:
   auth:
