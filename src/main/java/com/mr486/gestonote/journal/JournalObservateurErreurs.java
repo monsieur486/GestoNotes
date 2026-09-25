@@ -8,6 +8,7 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -27,6 +28,10 @@ import org.springframework.web.servlet.ModelAndView;
  * <p>La priorité la plus haute garantit d'être appelé avant tout résolveur qui, lui, traiterait
  * l'exception et l'empêcherait d'aller plus loin — y compris celui qui porte les
  * {@code @ControllerAdvice} déjà présents dans cette application.</p>
+ *
+ * <p><b>Il ne décide pas du type émis</b> : {@link ClassementErreur} le fait. Un 404 de
+ * robot part en {@code appli.http.introuvable}, niveau {@code info}, sans trace ; seul ce qui
+ * n'est ni un 404 ni une coupure client reste une {@code appli.erreur}.</p>
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -39,10 +44,13 @@ public class JournalObservateurErreurs implements HandlerExceptionResolver {
     private final JournalClient journalClient;
 
     /**
-     * Consigne l'exception, puis laisse la main.
+     * Consigne l'exception sous le type que lui donne {@link ClassementErreur}, puis laisse
+     * la main.
      *
-     * <p><b>Exemple :</b> une exception sur une page produit un {@code appli.erreur} portant le
-     * chemin demandé et la trace complète, et l'utilisateur voit la même réponse qu'auparavant.</p>
+     * <p><b>Exemple :</b> une sonde de robot sur {@code /.env} produit un
+     * {@code appli.http.introuvable} sans trace ; une {@code NullPointerException} sur une page
+     * produit un {@code appli.erreur} portant la trace complète. Dans les deux cas,
+     * l'utilisateur voit la même réponse qu'auparavant.</p>
      *
      * @param requete      la requête en cours
      * @param reponse      la réponse en cours
@@ -53,15 +61,23 @@ public class JournalObservateurErreurs implements HandlerExceptionResolver {
     @Override
     public ModelAndView resolveException(HttpServletRequest requete, HttpServletResponse reponse,
             Object gestionnaire, Exception exception) {
-        StringWriter tampon = new StringWriter();
-        exception.printStackTrace(new PrintWriter(tampon));
+        ClassementErreur.Classement classement = ClassementErreur.classer(exception,
+                requete.getRequestURI(), requete.getHeader(HttpHeaders.REFERER),
+                requete.getHeader(HttpHeaders.HOST));
 
         journalClient.emettre(new JournalClient.EvenementSortant(
-                COMPOSANT, "appli.erreur", "erreur",
-                exception.getClass().getSimpleName() + " sur " + requete.getRequestURI()
-                        + " : " + exception.getMessage(),
-                tampon.toString(), null, null, Instant.now().toString()));
+                COMPOSANT, classement.type(), classement.niveau(), classement.resume(),
+                classement.avecTrace() ? trace(exception) : null,
+                null, null, Instant.now().toString()));
 
         return null;
+    }
+
+    // La pile complète, jointe aux seules appli.erreur : pour un 404, elle ne dirait rien
+    // que le résumé ne dise.
+    private static String trace(Exception exception) {
+        StringWriter tampon = new StringWriter();
+        exception.printStackTrace(new PrintWriter(tampon));
+        return tampon.toString();
     }
 }
